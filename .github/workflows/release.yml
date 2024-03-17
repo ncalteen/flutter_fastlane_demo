@@ -1,0 +1,168 @@
+name: Deploy to Apple and Android App Stores
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      description:
+        description: The release description text
+        required: false
+        type: string
+      environment:
+        description: The environment to release to
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: The version number to release
+        required: false
+        type: string
+
+env:
+  FLUTTER_VERSION: 3.x
+  JAVA_VERSION: 21
+  RELEASE_BODY: ${{ github.event.release.body }}
+  RELEASE_VERSION: ${{ github.event.release.tag_name }}
+  RUBY_VERSION: 3.3
+
+jobs:
+  android:
+    name: Build and Deploy (Android)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/android
+
+    # If this is a release event, target the 'production' environment, otherwise
+    # target the input environment, defaulting to 'staging'.
+    environment: |
+      github.event_name == 'release' && 'production' ||
+      github.event.inputs.environment ||
+      'staging'
+
+    # Only run this job if it is a workflow_dispatch event, or it is a release
+    # from the main branch.
+    if: |
+      github.event_name == 'workflow_dispatch ||
+      (github.event_name == 'release' && github.ref == 'refs/heads/main')
+
+    # TODO: Extract release details from the GitHub release text to be published
+    # as the update description for both iOS and Android.
+
+    # TODO: Include Sentry new version notification - ask @DevGlitch for the job
+    # code as we have this already in place for our flask app.
+
+    # prettier-ignore
+    env:
+      # Android environment variables.
+      ANDROID_KEYSTORE_FILE_BASE64: ${{ secrets.ANDROID_KEYSTORE_FILE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+      ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+      ANDROID_PACKAGE_NAME: com.ncalteen.flutter_fastlane_demo
+      ANDROID_SDK_VERSION: 34.0.0
+      SUPPLY_PACKAGE_NAME: com.ncalteen.flutter_fastlane_demo
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        id: setup-java
+        uses: actions/setup-java@v4
+        with:
+          cache: gradle
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Flutter
+        id: setup-flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          channel: stable
+
+      - name: Run Tests
+        id: test
+        run: |
+          fastlane test
+
+      - name: Build and Upload to TestFlight
+        id: build-upload
+        run: |
+          fastlane ${{ github.event.inputs.environment == 'staging' && 'internal' || 'production' }}
+
+  ios:
+    name: Build and Deploy (iOS)
+    runs-on: macos-latest
+
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/ios
+
+    # If this is a release event, target the 'production' environment, otherwise
+    # target 'staging'.
+    # prettier-ignore
+    environment: ${{ github.event_name == 'release' && 'production' || 'staging' }}
+
+    # prettier-ignore
+    env:
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_USERNAME: ${{ secrets.APPLE_USERNAME }}
+      APP_BUNDLE_IDENTIFIER: com.ncalteen.flutterFastlaneDemo
+      APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_FILE: ${{ secrets.APP_STORE_CONNECT_KEY_FILE }}
+      EXPORT_OPTIONS_PLIST_PATH: ${{ github.workspace }}/ios/config/ExportOptions.plist
+      FASTLANE_MATCH_AWS_ACCESS_KEY_ID: ${{ secrets.FASTLANE_MATCH_AWS_ACCESS_KEY_ID }}
+      FASTLANE_MATCH_AWS_SECRET_ACCESS_KEY: ${{ secrets.FASTLANE_MATCH_AWS_SECRET_ACCESS_KEY }}
+      FASTLANE_MATCH_BUCKET_NAME: ${{ secrets.FASTLANE_MATCH_BUCKET_NAME }}
+      FASTLANE_MATCH_PASSWORD: ${{ secrets.FASTLANE_MATCH_PASSWORD }}
+      FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
+      FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
+      TEAM_ID: ${{ secrets.TEAM_ID }}
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        id: setup-java
+        uses: actions/setup-java@v4
+        with:
+          cache: gradle
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Flutter
+        id: setup-flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          channel: stable
+
+      - name: Setup Apple Certificates
+        id: setup-certificates
+        run: |
+          fastlane setup_certificates
+
+      - name: Run Tests
+        id: test
+        run: |
+          fastlane test
+
+      - name: Build and Upload to TestFlight
+        id: build-upload
+        run: |
+          fastlane ${{ github.event.inputs.environment == 'staging' && 'internal' || 'production' }}
