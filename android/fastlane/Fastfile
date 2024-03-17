@@ -1,9 +1,31 @@
 default_platform(:android)
 
 platform :android do
+  desc 'Installs Flutter dependencies'
+  private_lane :fetch_dependencies do
+    sh('flutter pub get --suppress-analytics')
+  end
+
   desc 'Cleanup Workspace'
-  lane :clean do
+  private_lane :clean do
     clean_build_artifacts
+  end
+
+  desc 'Setup Keystore'
+  private_lane :setup_keystore do
+    setup_ci if ENV['CI']
+
+    # Convert the base64 encoded keystore file to a file
+    sh('echo $ANDROID_KEYSTORE_FILE_BASE64 | base64 --decode > ../keystore.jks')
+
+    # Create a keystore.properties file
+    File.write('../keystore.properties', <<~EOF
+      keyAlias=#{ENV['ANDROID_SIGNING_KEY_ALIAS']}
+      keyPassword=#{ENV['ANDROID_SIGNING_KEY_PASSWORD']}
+      storeFile=../keystore.jks
+      storePassword=#{ENV['ANDROID_KEYSTORE_PASSWORD']}
+    EOF
+    )
   end
 
   desc 'Run Unit Tests'
@@ -21,67 +43,42 @@ platform :android do
 
   desc 'Deploy to Google Play (Internal)'
   lane :internal do
-    setup_ci if ENV['CI']
+    clean
+    fetch_dependencies
+    setup_keystore
 
     # increment_version_code?
 
-    # Convert the base64 encoded keystore file to a file
-    sh('echo $ANDROID_KEYSTORE_FILE_BASE64 | base64 --decode > ../keystore.jks')
-
-    # Create a keystore.properties file
-    File.write('../keystore.properties', <<~EOF
-      keyAlias=#{ENV['ANDROID_SIGNING_KEY_ALIAS']}
-      keyPassword=#{ENV['ANDROID_SIGNING_KEY_PASSWORD']}
-      storeFile=../keystore.jks
-      storePassword=#{ENV['ANDROID_KEYSTORE_PASSWORD']}
-    EOF
-    )
-
-    # Install Flutter dependencies
-    sh('flutter pub get')
-
     # Build the app
-    sh('flutter build appbundle --debug')
+    sh('flutter build appbundle --release')
 
     # Upload the app to Google Play
     upload_to_play_store(
-      track: 'internal',
       aab: '../build/app/outputs/bundle/release/app-release.aab',
       json_key_data: ENV['ANDROID_SERVICE_ACCOUNT_JSON'],
-      package_name: ENV['ANDROID_PACKAGE_NAME']
+      package_name: ENV['ANDROID_PACKAGE_NAME'],
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      track: 'internal'
     )
   end
 
   desc 'Deploy to Google Play (Production)'
   lane :production do
-    setup_ci if ENV['CI']
-
-    # TODO: Screenshots
-    # https://docs.fastlane.tools/getting-started/android/screenshots/
-
-    # Convert the base64 encoded keystore file to a file
-    sh('echo $ANDROID_KEYSTORE_FILE_BASE64 | base64 --decode > ../keystore.jks')
-
-    # Create a keystore.properties file
-    File.write('../keystore.properties', <<~EOF
-      keyAlias=#{ENV['ANDROID_SIGNING_KEY_ALIAS']}
-      keyPassword=#{ENV['ANDROID_SIGNING_KEY_PASSWORD']}
-      storeFile=../keystore.jks
-      storePassword=#{ENV['ANDROID_KEYSTORE_PASSWORD']}
-    EOF
-    )
-
-    # Install Flutter dependencies
-    sh('flutter pub get')
+    clean
+    fetch_dependencies
+    setup_keystore
 
     # Build the app
     sh('flutter build appbundle --release')
 
     upload_to_play_store(
-      track: 'production',
-      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      aab: '../build/app/outputs/bundle/release/app-release.aab', # TODO PATH
       json_key_data: ENV['ANDROID_SERVICE_ACCOUNT_JSON'],
-      package_name: ENV['ANDROID_PACKAGE_NAME']
+      package_name: ENV['ANDROID_PACKAGE_NAME'],
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      track: 'production'
     )
   end
 end

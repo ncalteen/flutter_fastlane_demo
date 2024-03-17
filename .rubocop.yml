@@ -4,5 +4,7 @@ Metrics/MethodLength:
   Max: 50
 Naming/FileName:
   Enabled: false
+Naming/HeredocDelimiterNaming:
+  Enabled: false
 Style/FrozenStringLiteralComment:
   Enabled: false

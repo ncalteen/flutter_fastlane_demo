@@ -13,39 +13,31 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 # Available Actions
 
-## iOS
+## Android
 
-### ios setup_certificates
-
-```sh
-[bundle exec] fastlane ios setup_certificates
-```
-
-Setup Certificates
-
-### ios generate_certificates
+### android test
 
 ```sh
-[bundle exec] fastlane ios generate_certificates
+[bundle exec] fastlane android test
 ```
 
-Generate Certificates
+Run Unit Tests
 
-### ios internal
+### android internal
 
 ```sh
-[bundle exec] fastlane ios internal
+[bundle exec] fastlane android internal
 ```
 
-Deploy to TestFlight (Internal)
+Deploy to Google Play (Internal)
 
-### ios production
+### android production
 
 ```sh
-[bundle exec] fastlane ios production
+[bundle exec] fastlane android production
 ```
 
-Deploy to App Store Connect (Production)
+Deploy to Google Play (Production)
 
 ----
 
