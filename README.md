@@ -155,12 +155,6 @@ profiles.
 The following files and projects will need to be updated when using this for
 your own project.
 
-- [`ios/config/Development.plist`](./ios/config/Development.plist)
-  - Update to use the **Development** provisioning profile to the one used by
-    Fastlane match.
-- [`ios/config/AppStore.plist`](./ios/config/AppStore.plist)
-  - Update to use the **AppStore** provisioning profile to the one used by
-    Fastlane match.
 - TODO: Finish list
 
 ### Workflow Modifications
@@ -193,8 +187,6 @@ When developing/testing locally, make sure to complete the following steps:
    fastlane match development
    ```
 
-1. Update [`ios/config/ExportOptions.plist`](./ios/config/ExportOptions.plist)
-   to use your development profile created by Fastlane match.
 1. Follow the Flutter/Fastlane integration instructions
    [here](https://docs.flutter.dev/deployment/cd#fastlane).
 1. Make sure your app builds locally for Android and iOS.
@@ -204,7 +196,7 @@ When developing/testing locally, make sure to complete the following steps:
    flutter build appbundle
 
    # iOS
-   flutter build ipa --debug --export-options-plist="$DEVELOPMENT_PLIST_PATH"
+   flutter build ipa --debug
    ```
 
    There is a good local development walkthrough in the
