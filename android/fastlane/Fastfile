@@ -30,9 +30,10 @@ platform :android do
 
   desc 'Run Unit Tests'
   lane :test do
+    sh('which gradle')
     gradle(
       task: 'test',
-      gradle_path: '../gradlew',
+      gradle_path: '../../gradlew'
     )
   rescue StandardError => e
     # (Optional) Uncomment the following to report the error to your Slack channel
