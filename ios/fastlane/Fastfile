@@ -106,10 +106,12 @@ platform :ios do
       groups: 'Nicks Group',
       ipa: './Runner.ipa',
       localized_build_info: {
-        'en-US': changelog_from_git_commits(
-          between: ['main', 'HEAD'],
-          merge_commit_filtering: 'exclude_merges'
-        )
+        'en-US': {
+          whats_new: changelog_from_git_commits(
+            between: ['main', 'HEAD'],
+            merge_commit_filtering: 'exclude_merges'
+          )
+        }
       },
       notify_external_testers: true,
       reject_build_waiting_for_review: true,
