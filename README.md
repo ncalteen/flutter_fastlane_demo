@@ -183,8 +183,6 @@ Update the target from `Runner` to your application's target.
 
 ## Local Development
 
-TODO: Fastlane match nuke steps...
-
 When developing/testing locally, make sure to complete the following steps:
 
 1. [Install Flutter](https://docs.flutter.dev/get-started/install)
