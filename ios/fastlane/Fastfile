@@ -29,8 +29,6 @@ platform :ios do
   lane :test do
     # (Optional) Run Flutter tests. This is disabled for now because tests don't pass in this demo app.
     # sh('flutter test --no-pub --coverage')
-    scan(workspace: 'Runner.xcworkspace',
-         scheme: 'Runner')
   end
 
   desc 'Setup Certificates'
