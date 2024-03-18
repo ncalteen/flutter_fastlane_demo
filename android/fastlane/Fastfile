@@ -32,7 +32,7 @@ platform :android do
   lane :test do
     gradle(
       task: 'test',
-      gradle_path: '../'
+      gradle_path: '../gradlew',
     )
   rescue StandardError => e
     # (Optional) Uncomment the following to report the error to your Slack channel
