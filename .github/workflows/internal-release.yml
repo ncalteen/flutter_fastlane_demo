@@ -7,10 +7,6 @@ on:
         description: Release Tag (with Build Number)
         default: v1.0.0+1
         required: true
-      body:
-        description: Release Notes
-        default: No release notes provided
-        required: true
 
 env:
   # Version Information
@@ -20,7 +16,6 @@ env:
   RUBY_VERSION: 3.3
 
   # Build Information
-  RELEASE_NOTES: ${{ github.event.inputs.body }}
   TAG_NAME: ${{ github.event.inputs.tag }}
 
 jobs:
@@ -34,6 +29,14 @@ jobs:
       build_number: ${{ steps.split-tag.outputs.build_number }}
 
     steps:
+      # Checkout the repo at the release tag.
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+          ref: ${{ env.TAG_NAME }}
+
       # Fails the workflow if the release tag is missing or invalid.
       # - Must have a build number (plus sign) in the tag.
       # - Must not have a prerelease identifier (hyphen) in the tag.
@@ -46,12 +49,6 @@ jobs:
         run: |
           echo "Invalid Release Tag: \"$TAG_NAME\"...Failing Workflow"
           exit 1
-
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-tags: true
 
       - name: Verify Version Tag Exists
         id: verify-tag-exists
@@ -94,7 +91,7 @@ jobs:
       ANDROID_SERVICE_ACCOUNT_JSON: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
       ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-      SUPPLY_PACKAGE_NAME: com.ncalteen.flutter_fastlane_demo
+      SUPPLY_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
 
       # Build Information
       BUILD_NAME: ${{ needs.prebuild.outputs.build_name }}

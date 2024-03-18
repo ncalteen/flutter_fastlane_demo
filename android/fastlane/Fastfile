@@ -3,7 +3,7 @@ default_platform(:android)
 platform :android do
   desc 'Installs Flutter dependencies'
   private_lane :fetch_dependencies do
-    sh('flutter pub get --suppress-analytics')
+    sh('flutter pub get')
   end
 
   desc 'Cleanup Workspace'
@@ -47,9 +47,18 @@ platform :android do
     fetch_dependencies
     setup_keystore
 
-    # Get the RELEASE_NOTES env var and write to fastlane/metadata/android/en-US/changelogs/default.txt
-    # This will automatically set the release notes for the app in the Google Play Console. Need to verify if this will
-    # work for multiple releases. Otherwise the file needs to be named RELEASE_BUILD.txt.
+    # Write the release notes to a file
+    # See: https://docs.fastlane.tools/actions/upload_to_play_store#changelogs-whats-new
+    if ENV['RELEASE_NOTES'].nil? || ENV['RELEASE_NOTES'].empty?
+      # Generate release notes from main up to the current HEAD
+      changelog_from_git_commits(
+        between: ['main', 'HEAD'],
+        merge_commit_filtering: 'exclude_merges'
+      )
+    else
+      # Use the GitHub event payload to get the release notes
+      File.write("metadata/android/en-US/changelogs/#{ENV['BUILD_NUMBER']}.txt", ENV['RELEASE_NOTES'])
+    end
 
     # If the BUILD_NAME and BUILD_NUMBER environment variables are set, use them when building with Flutter. Otherwise,
     # use the default values in pubspec.yaml.
@@ -76,6 +85,19 @@ platform :android do
     clean
     fetch_dependencies
     setup_keystore
+
+    # Write the release notes to a file
+    # See: https://docs.fastlane.tools/actions/upload_to_play_store#changelogs-whats-new
+    if ENV['RELEASE_NOTES'].nil? || ENV['RELEASE_NOTES'].empty?
+      # Generate release notes from main up to the current HEAD
+      changelog_from_git_commits(
+        between: ['main', 'HEAD'],
+        merge_commit_filtering: 'exclude_merges'
+      )
+    else
+      # Use the GitHub event payload to get the release notes
+      File.write("metadata/android/en-US/changelogs/#{ENV['BUILD_NUMBER']}.txt", ENV['RELEASE_NOTES'])
+    end
 
     # If the BUILD_NAME and BUILD_NUMBER environment variables are set, use them when building with Flutter. Otherwise,
     # use the default values in pubspec.yaml.

@@ -3,7 +3,7 @@ default_platform(:ios)
 platform :ios do
   desc 'Installs Flutter dependencies'
   private_lane :fetch_dependencies do
-    sh('flutter pub get --suppress-analytics')
+    sh('flutter pub get')
   end
 
   desc 'Authenticate with App Store Connect'
@@ -28,7 +28,7 @@ platform :ios do
   desc 'Run Unit Tests'
   private_lane :test do
     # (Optional) Run Flutter tests. This is disabled for now because tests don't pass in this demo app.
-    # sh('flutter test --no-pub --coverage --suppress-analytics')
+    # sh('flutter test --no-pub --coverage')
     scan(workspace: 'Runner.xcworkspace',
          scheme: 'Runner')
   end
@@ -71,8 +71,6 @@ platform :ios do
     clean
     fetch_dependencies
 
-    test
-
     authenticate_app_store_connect
     update_code_signing_settings(
       build_configurations: ['Debug'],
@@ -98,18 +96,14 @@ platform :ios do
       archive_path: '../build/ios/archive/Runner.xcarchive'
     )
 
-    # Add git commits to changelog
-    # TODO: Use something similar to pull from release notes
-    # changelog = download(url: 'https://lookatmycms.com/changelog.txt')
-    # changelog_from_git_commits(
-    #   merge_commit_filtering: 'exclude_merges'
-    # )
-
     # Upload to TestFlight
     upload_to_testflight(
       app_identifier: ENV['APP_BUNDLE_IDENTIFIER'],
       apple_id: ENV['APPLE_ID'],
-      # changelog: changelog,
+      changelog: changelog_from_git_commits(
+        between: ['main', 'HEAD'],
+        merge_commit_filtering: 'exclude_merges'
+      ),
       distribute_external: true,
       groups: 'Nicks Group',
       ipa: './Runner.ipa',
@@ -118,7 +112,7 @@ platform :ios do
       skip_waiting_for_build_processing: false,
       team_id: ENV['TEAM_ID'],
       username: ENV['APPLE_USERNAME']
-    ) # TODO: Beta app localizations
+    )
   rescue StandardError => e
     # (Optional) Uncomment the following to report the error to your Slack channel
     # slack(
@@ -133,8 +127,6 @@ platform :ios do
   lane :production do
     clean
     fetch_dependencies
-
-    test
 
     authenticate_app_store_connect
     update_code_signing_settings(
@@ -161,25 +153,21 @@ platform :ios do
       archive_path: '../build/ios/archive/Runner.xcarchive'
     )
 
-    # Add git commits to changelog
-    # TODO: Use something similar to pull from release notes
-    # changelog = download(url: 'https://lookatmycms.com/changelog.txt')
-    # changelog_from_git_commits(
-    #   merge_commit_filtering: 'exclude_merges'
-    # )
-
     # Upload to App Store Connect for Review
     upload_to_app_store(
       app_identifier: ENV['APP_BUNDLE_IDENTIFIER'],
       automatic_release: true,
       ipa: './Runner.ipa',
-      # release_notes: changelog,
+      release_notes: {
+        'en-US': ENV['RELEASE_NOTES']
+      },
       skip_metadata: true,
       skip_screenshots: true,
       submit_for_review: false,
       team_id: ENV['TEAM_ID'],
       username: ENV['APPLE_USERNAME'],
-      verify_only: true # TODO: Remove this line to submit for review
+      # TODO: Remove this line to submit for review
+      verify_only: true
     )
   rescue StandardError => e
     # (Optional) Uncomment the following to report the error to your Slack channel

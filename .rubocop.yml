@@ -8,3 +8,5 @@ Naming/HeredocDelimiterNaming:
   Enabled: false
 Style/FrozenStringLiteralComment:
   Enabled: false
+Style/WordArray:
+  Enabled: false
