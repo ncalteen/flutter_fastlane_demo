@@ -51,13 +51,13 @@ platform :android do
     # Write the release notes to a file
     # See: https://docs.fastlane.tools/actions/upload_to_play_store#changelogs-whats-new
     if ENV['RELEASE_NOTES'].nil? || ENV['RELEASE_NOTES'].empty?
-      # Generate release notes from main up to the current HEAD
+      # Generate release notes from main up to the current HEAD.
       changelog_from_git_commits(
         between: ['main', 'HEAD'],
         merge_commit_filtering: 'exclude_merges'
       )
     else
-      # Use the GitHub event payload to get the release notes
+      # Use the GitHub event payload to get the release notes.
       File.write("metadata/android/en-US/changelogs/#{ENV['BUILD_NUMBER']}.txt", ENV['RELEASE_NOTES'])
     end
 
