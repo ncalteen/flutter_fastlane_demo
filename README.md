@@ -155,17 +155,31 @@ profiles.
 The following files and projects will need to be updated when using this for
 your own project.
 
-- TODO: Finish list
+#### [`internal-release.yml`](./.github/workflows/internal-release.yml)
 
-### Workflow Modifications
+Update the following:
 
-In the [`release.yml`](./.github/workflows/release.yml), update the following:
+| Name                  | Description         |
+| --------------------- | ------------------- |
+| `ANDROID_SDK_VERSION` | Android SDK Version |
+| `FLUTTER_VERSION`     | Flutter Version     |
+| `JAVA_VERSION`        | Java Version        |
+| `RUBY_VERSION`        | Ruby Version        |
 
-| Name                    | Description                 |
-| ----------------------- | --------------------------- |
-| `ANDROID_PACKAGE_NAME`  | Android Package Name        |
-| `APP_BUNDLE_IDENTIFIER` | Apple App Bundle Identifier |
-| `SUPPLY_PACKAGE_NAME`   | Android Package Name        |
+#### [`release.yml`](./.github/workflows/release.yml)
+
+Update the following:
+
+| Name                  | Description         |
+| --------------------- | ------------------- |
+| `ANDROID_SDK_VERSION` | Android SDK Version |
+| `FLUTTER_VERSION`     | Flutter Version     |
+| `JAVA_VERSION`        | Java Version        |
+| `RUBY_VERSION`        | Ruby Version        |
+
+#### [`Fastfile (iOS)`](./ios/fastlane/Fastfile)
+
+Update the target from `Runner` to your application's target.
 
 ## Local Development
 
