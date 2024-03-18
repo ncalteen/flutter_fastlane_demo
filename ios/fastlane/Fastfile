@@ -182,9 +182,9 @@ end
 
 def on_error(slack_url, message, channel, exception)
   slack(
-    slack_url:,
-    channel:,
-    message:,
+    slack_url,
+    channel,
+    message,
     success: false,
     payload: {},
     default_payloads: [],
