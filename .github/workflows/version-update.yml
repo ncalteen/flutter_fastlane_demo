@@ -1,0 +1,38 @@
+# Responsible for managing the version tags when pull requests are merged into
+# the default branch (main).
+name: Version Update
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Update Version Tags
+    runs-on: ubuntu-latest
+
+    # Only run on merged, non-Dependabot PRs.
+    if: |
+      github.event.pull_request.merged == true &&
+      startsWith(github.head_ref, 'dependabot/') == false
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - name: Tag
+        id: tag
+        uses: issue-ops/semver@v1.0.0
+        with:
+          manifest-path: pubspec.yaml
+          workspace: ${{ github.workspace }}
+          ref: main
