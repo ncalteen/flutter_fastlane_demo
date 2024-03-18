@@ -105,6 +105,14 @@ platform :ios do
       distribute_external: true,
       groups: 'Nicks Group',
       ipa: './Runner.ipa',
+      localized_build_info: {
+        'en-US': {
+          whatsNew: changelog_from_git_commits(
+            between: ['main', 'HEAD'],
+            merge_commit_filtering: 'exclude_merges'
+          )
+        }
+      },
       notify_external_testers: true,
       reject_build_waiting_for_review: true,
       skip_waiting_for_build_processing: false,
