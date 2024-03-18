@@ -47,10 +47,17 @@ platform :android do
     fetch_dependencies
     setup_keystore
 
-    # increment_version_code?
+    # Get the RELEASE_NOTES env var and write to fastlane/metadata/android/en-US/changelogs/default.txt
+    # This will automatically set the release notes for the app in the Google Play Console. Need to verify if this will
+    # work for multiple releases. Otherwise the file needs to be named RELEASE_BUILD.txt.
 
-    # Build the app
-    sh('flutter build appbundle --release')
+    # If the BUILD_NAME and BUILD_NUMBER environment variables are set, use them when building with Flutter. Otherwise,
+    # use the default values in pubspec.yaml.
+    if ENV['BUILD_NAME'] && ENV['BUILD_NUMBER']
+      sh("flutter build appbundle --release --build-name #{ENV['BUILD_NAME']} --build-number #{ENV['BUILD_NUMBER']}")
+    else
+      sh('flutter build appbundle --release')
+    end
 
     # Upload the app to Google Play
     upload_to_play_store(
@@ -59,7 +66,8 @@ platform :android do
       package_name: ENV['ANDROID_PACKAGE_NAME'],
       skip_upload_images: true,
       skip_upload_screenshots: true,
-      track: 'internal'
+      track: 'internal',
+      release_status: 'draft' # TODO: Remove this line to publish the app immediately
     )
   end
 
@@ -69,11 +77,16 @@ platform :android do
     fetch_dependencies
     setup_keystore
 
-    # Build the app
-    sh('flutter build appbundle --release')
+    # If the BUILD_NAME and BUILD_NUMBER environment variables are set, use them when building with Flutter. Otherwise,
+    # use the default values in pubspec.yaml.
+    if ENV['BUILD_NAME'] && ENV['BUILD_NUMBER']
+      sh("flutter build appbundle --release --build-name #{ENV['BUILD_NAME']} --build-number #{ENV['BUILD_NUMBER']}")
+    else
+      sh('flutter build appbundle --release')
+    end
 
     upload_to_play_store(
-      aab: '../build/app/outputs/bundle/release/app-release.aab', # TODO PATH
+      aab: '../build/app/outputs/bundle/release/app-release.aab',
       json_key_data: ENV['ANDROID_SERVICE_ACCOUNT_JSON'],
       package_name: ENV['ANDROID_PACKAGE_NAME'],
       skip_upload_images: true,
